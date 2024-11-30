@@ -1,7 +1,7 @@
 const express = require('express')
 const {buildSchema} = require('graphql');
 const {createHandler} = require('graphql-http/lib/use/express');
-const { ruruHTML } = require("ruru/server")
+const { ruruHTML } = require("ruru/server");
 
 const app = express()
 const port = 3000

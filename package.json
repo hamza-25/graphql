@@ -14,6 +14,7 @@
     "express": "^4.21.1",
     "graphql": "^16.9.0",
     "graphql-http": "^1.22.3",
+    "mongoose": "^8.8.3",
     "ruru": "^2.0.0-beta.13"
   }
 }
