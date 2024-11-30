@@ -6,6 +6,8 @@ import User from './models/User.mjs';
 import Post from './models/Post.mjs';
 import bcrypt from 'bcrypt';
 import('./connections/connection.mjs');
+import ('dotenv/config');
+import jwt from 'jsonwebtoken';
 
 const app = express()
 const port = 3000
@@ -22,6 +24,7 @@ const schema = buildSchema(`
 
     type Mutation {
         userCreate(name:String!, email:String!, password:String!): User
+        userLogin(email:String!, password:String!): String
     }
 `);
 
@@ -44,6 +47,14 @@ const mutationOpr = {
             name,
             email,
         }
+    }),
+    userLogin: (async ({email, password}) => {
+        const userexists = await User.findOne({email});
+        const validPass = await bcrypt.compare(password, userexists.password);
+        if (!userexists || !validPass)
+            throw new Error(`invalid credentials`);
+        const token = jwt.sign({userId: userexists._id}, process.env.SECRET, {expiresIn: '24h'});
+        return token;
     }),
 };
 
