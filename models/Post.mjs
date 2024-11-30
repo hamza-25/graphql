@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const postSchema = new Schema({
@@ -10,10 +10,10 @@ const postSchema = new Schema({
         type: String,
         require: true,
     },
-    iserId: {
+    userId: {
         type: Schema.ObjectId,
         require: true,
     },
 });
 
-export const Post = mongoose.model('Post', postSchema);
+export default mongoose.model('Post', postSchema);

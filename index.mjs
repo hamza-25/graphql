@@ -1,20 +1,19 @@
-const express = require('express')
-const {buildSchema} = require('graphql');
-const {createHandler} = require('graphql-http/lib/use/express');
-const { ruruHTML } = require("ruru/server");
+import express  from 'express';
+import {buildSchema}  from 'graphql';
+import {createHandler}  from 'graphql-http/lib/use/express';
+import { ruruHTML }  from 'ruru/server';
+import User from './models/User.mjs';
+import Post from './models/Post.mjs';
+import('./connections/connection.mjs');
 
 const app = express()
 const port = 3000
 
-const users = [
-    {id: '1', name: 'hamza'},
-    {id: '2', name: 'sana'}
-]
-
 const schema = buildSchema(`
     type User {
         id: String,
-        name: String,
+        name: String!,
+        email: String!,
     }
     type Query {
         hello: String,
@@ -23,7 +22,7 @@ const schema = buildSchema(`
     }
 
     type Mutation {
-        createUser(id:String, name:String): User
+        userCreate(name:String!, email:String!, password:String!): User
     }
 `);
 
@@ -34,10 +33,14 @@ const queriesOpr = {
 };
 
 const mutationOpr = {
-    createUser: (({id, name}) => {
-        const createUser = {id, name};
-        users.push(createUser);
-        return createUser;
+    userCreate: (async ({name, email, password}) => {
+        const userData = {name, email, password};
+        const user = new User(userData);
+        await user.save();
+        return{
+            name,
+            email,
+        }
     }),
 };
 
