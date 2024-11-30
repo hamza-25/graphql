@@ -4,16 +4,23 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     name: {
         type: String,
-        require: true,
+        required: true,
+        trim: true
     },
     email: {
         type: String,
-        require: true,
+        required: true,
+        unique: true,
+        trim: true,
     },
     password: {
         type: String,
-        require: true,
+        required: [true, 'Password is required'],
     },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    }
 });
 
 export default mongoose.model('User', userSchema);

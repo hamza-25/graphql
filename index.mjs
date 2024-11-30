@@ -4,6 +4,7 @@ import {createHandler}  from 'graphql-http/lib/use/express';
 import { ruruHTML }  from 'ruru/server';
 import User from './models/User.mjs';
 import Post from './models/Post.mjs';
+import bcrypt from 'bcrypt';
 import('./connections/connection.mjs');
 
 const app = express()
@@ -17,8 +18,6 @@ const schema = buildSchema(`
     }
     type Query {
         hello: String,
-        users: [User],
-        user(id:String): User
     }
 
     type Mutation {
@@ -28,13 +27,17 @@ const schema = buildSchema(`
 
 const queriesOpr = {
     hello: () => 'hello world',
-    users: () => users,
-    user: ((args) => users.find(user => user.id == args.id)),
 };
 
 const mutationOpr = {
     userCreate: (async ({name, email, password}) => {
-        const userData = {name, email, password};
+        const userExists = await User.findOne({email});
+        if(userExists)
+            throw new Error(`user exists`);
+        if(password.length === 0)
+            throw new Error(`password can't be empty`);
+        const hashPassword = await bcrypt.hash(password, 10);
+        const userData = {name, email, password: hashPassword};
         const user = new User(userData);
         await user.save();
         return{
