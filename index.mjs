@@ -7,39 +7,43 @@ import Post from './models/Post.mjs';
 import bcrypt from 'bcrypt';
 import('./connections/connection.mjs');
 import ('dotenv/config');
-import jwt, { decode } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import typeDef from './graphql/typeDef.mjs';
+import { userAuth } from './utils/userAuthVerify.mjs';
 
 const app = express()
 const port = 3000
 
-const schema = buildSchema(`
-    type Post {
-        id: ID
-        title: String!
-        content: String!
-        userId: String!
-    }
-    input inputPost {
-        title: String!
-        content: String!
-        token:String!
-    }
-    type User {
-        id: String
-        name: String!
-        email: String!
-    }
-    type Query {
-        hello: String
-        usersGet: [User!]!
-    }
 
-    type Mutation {
-        userCreate(name:String!, email:String!, password:String!): User
-        userLogin(email:String!, password:String!): String
-        postsCreate(input: inputPost): Post
-    }
-`);
+const schema = buildSchema(typeDef);
+// const schema = buildSchema(`
+//     type Post {
+//         id: ID
+//         title: String!
+//         content: String!
+//         userId: String!
+//     }
+//     input inputPost {
+//         title: String!
+//         content: String!
+//         token:String!
+//     }
+//     type User {
+//         id: String
+//         name: String!
+//         email: String!
+//     }
+//     type Query {
+//         hello: String
+//         usersGet: [User!]!
+//     }
+
+//     type Mutation {
+//         userCreate(name:String!, email:String!, password:String!): User
+//         userLogin(email:String!, password:String!): String
+//         postsCreate(input: inputPost): Post
+//     }
+// `);
 
 const queriesOpr = {
     hello: () => 'hello world',
@@ -47,15 +51,6 @@ const queriesOpr = {
         const users = await User.find();
         return users;
     }, 
-};
-
-const userAuth = (token) => {
-    try {
-        const decoded = jwt.verify(token, process.env.SECRET);
-        return decoded.userId;
-    } catch (error) {
-        throw new Error(`invalid token`);
-    }
 };
 
 const mutationOpr = {
