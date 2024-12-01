@@ -7,29 +7,55 @@ import Post from './models/Post.mjs';
 import bcrypt from 'bcrypt';
 import('./connections/connection.mjs');
 import ('dotenv/config');
-import jwt from 'jsonwebtoken';
+import jwt, { decode } from 'jsonwebtoken';
 
 const app = express()
 const port = 3000
 
 const schema = buildSchema(`
+    type Post {
+        id: ID
+        title: String!
+        content: String!
+        userId: String!
+    }
+    input inputPost {
+        title: String!
+        content: String!
+        token:String!
+    }
     type User {
-        id: String,
-        name: String!,
-        email: String!,
+        id: String
+        name: String!
+        email: String!
     }
     type Query {
-        hello: String,
+        hello: String
+        usersGet: [User!]!
     }
 
     type Mutation {
         userCreate(name:String!, email:String!, password:String!): User
         userLogin(email:String!, password:String!): String
+        postsCreate(input: inputPost): Post
     }
 `);
 
 const queriesOpr = {
     hello: () => 'hello world',
+    usersGet: async () => {
+        const users = await User.find();
+        return users;
+    }, 
+};
+
+const userAuth = (token) => {
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET);
+        return decoded.userId;
+    } catch (error) {
+        throw new Error(`invalid token`);
+    }
 };
 
 const mutationOpr = {
@@ -56,6 +82,16 @@ const mutationOpr = {
         const token = jwt.sign({userId: userexists._id}, process.env.SECRET, {expiresIn: '24h'});
         return token;
     }),
+    postsCreate: ( async ({input}) => {
+        const userId = userAuth(input.token);
+        const post = new Post({
+            title: input.title,
+            content: input.content,
+            userId
+        });
+        await post.save();
+        return post;
+    }),
 };
 
 const root = {
@@ -64,7 +100,7 @@ const root = {
 
 };
 
-app.get("/graphql", (_req, res) => {
+app.get("/", (_req, res) => {
     res.type("html")
     res.end(ruruHTML({ endpoint: "/graphql" }))
   })
